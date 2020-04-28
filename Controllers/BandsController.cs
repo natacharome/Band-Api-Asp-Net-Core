@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BandApi.Dtos;
+using BandApi.Helpers;
 using BandApi.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,10 +21,21 @@ namespace BandApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetBands()
+        public ActionResult<IEnumerable<BandDto>> GetBands()
         {
             var bandsFromRepo = _repository.GetBands();
-            return Ok(bandsFromRepo);
+            var bandDto = new List<BandDto>();
+            foreach(var band in bandsFromRepo)
+            {
+                bandDto.Add(new BandDto()
+                {
+                    Id = band.Id,
+                    Name = band.Name,
+                    MainGenre = band.MainGenre,
+                    FoundedYearsAgo = $"{band.Founded.ToString("yyyy")} ({band.Founded.GetYearsAgo()} years ago)"
+                });
+            }
+            return Ok(bandDto);
         }
 
         [HttpGet("{bandId}")]
@@ -31,6 +44,7 @@ namespace BandApi.Controllers
             var bandFromRepo = _repository.GetBand(bandId);
             if (bandFromRepo == null)
                 return NotFound();
+
             return Ok(bandFromRepo);
         }
 
