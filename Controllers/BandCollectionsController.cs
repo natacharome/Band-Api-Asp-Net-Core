@@ -56,5 +56,7 @@ namespace BandApi.Controllers
 
             return CreatedAtRoute("GetBandCollection", new { ids = IdsString }, bandCollectionToReturn);
         }
+
+
     }
 }
