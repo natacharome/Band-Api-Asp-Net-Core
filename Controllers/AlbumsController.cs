@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using BandApi.Dtos;
 using BandApi.Entities;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace BandApi.Controllers
 {
@@ -70,6 +71,25 @@ namespace BandApi.Controllers
             _mapper.Map(album, albumFromRepo);
             _repository.UpdateAlbum(albumFromRepo);
            _repository.Save();
+
+            return NoContent();
+        }
+
+        [HttpPatch("{albumId}")]
+        public ActionResult PartiallyUpdateAlbumForBand(Guid bandId, Guid albumId, [FromBody] JsonPatchDocument<AlbumForUpdatingDto> patchDocument)
+        {
+            if (!_repository.BandExists(bandId))
+                return NotFound();
+            var albumFromRepo = _repository.GetAlbum(bandId, albumId);
+            if (albumFromRepo == null)
+                return NotFound();
+
+            var albumToPatch = _mapper.Map<AlbumForUpdatingDto>(albumFromRepo);
+            patchDocument.ApplyTo(albumToPatch);
+
+            _mapper.Map(albumToPatch, albumFromRepo);
+            _repository.UpdateAlbum(albumFromRepo);
+            _repository.Save();
 
             return NoContent();
         }
