@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using BandApi.Dtos;
+using BandApi.Entities;
 using BandApi.Helpers;
 using BandApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -33,7 +34,7 @@ namespace BandApi.Controllers
             return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo));
         }
 
-        [HttpGet("{bandId}")]
+        [HttpGet("{bandId}", Name="GetBand")]
         public IActionResult GetBand(Guid bandId)
         {
             var bandFromRepo = _repository.GetBand(bandId);
@@ -41,6 +42,17 @@ namespace BandApi.Controllers
                 return NotFound();
 
             return Ok(bandFromRepo);
+        }
+
+        [HttpPost]
+        public ActionResult<BandDto> CreateBand([FromBody]BandForCreatingDto band)
+        {
+            var bandEntity = _mapper.Map<Band>(band);
+            _repository.AddBand(bandEntity);
+            _repository.Save();
+
+            var bandToReturn = _mapper.Map<BandDto>(bandEntity);
+            return CreatedAtRoute("GetBand", new { bandId = bandToReturn.Id }, bandToReturn);
         }
 
 

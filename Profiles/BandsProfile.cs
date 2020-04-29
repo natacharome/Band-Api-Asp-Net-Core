@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using BandApi.Dtos;
+using BandApi.Entities;
 using BandApi.Helpers;
 using System;
 using System.Collections.Generic;
@@ -12,13 +14,13 @@ namespace BandApi.Profiles
     {
         public BandsProfile()
         {
-            CreateMap<Entities.Band, Dtos.BandDto>()
+            CreateMap<Band,BandDto>()
                 .ForMember(
                     destination => destination.FoundedYearsAgo,
                     opt => opt
                     .MapFrom(src => $"{src.Founded.ToString("yyyy")} {src.Founded.GetYearsAgo()}) years ago")
                 );
-            
+            CreateMap<BandForCreatingDto, Band>();
         }
     }
 }
