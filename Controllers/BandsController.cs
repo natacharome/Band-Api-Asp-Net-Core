@@ -62,5 +62,17 @@ namespace BandApi.Controllers
             return Ok();
         }
 
+        [HttpDelete("{bandId}")]
+        public ActionResult DeleteBand(Guid bandId)
+        {
+            var bandFromRepo = _repository.GetBand(bandId);
+            if (bandFromRepo == null)
+                return NotFound();
+            _repository.DeleteBand(bandFromRepo);
+            _repository.Save();
+
+            return NoContent();
+        }
+
     }
 }

@@ -87,8 +87,25 @@ namespace BandApi.Controllers
             var albumToPatch = _mapper.Map<AlbumForUpdatingDto>(albumFromRepo);
             patchDocument.ApplyTo(albumToPatch);
 
+            if (!TryValidateModel(albumToPatch))
+                return ValidationProblem(ModelState);
+
             _mapper.Map(albumToPatch, albumFromRepo);
             _repository.UpdateAlbum(albumFromRepo);
+            _repository.Save();
+
+            return NoContent();
+        }
+
+        [HttpDelete("{albumId}")]
+        public ActionResult DeleteAlbumFromBand(Guid bandId, Guid albumId)
+        {
+            if (!_repository.BandExists(bandId))
+                return NotFound();
+            var albumFromRepo = _repository.GetAlbum(bandId, albumId);
+            if (albumFromRepo == null)
+                return NotFound();
+            _repository.DeleteAlbum(albumFromRepo);
             _repository.Save();
 
             return NoContent();
