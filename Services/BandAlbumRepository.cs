@@ -140,6 +140,8 @@ namespace BandApi.Services
         public void UpdateAlbum(Album album)
         {
             // Not implemented
+            // Repository pattern = is an absraction that reduces
+            // complexity and aims to make the code safe for the repository implementation, persistance ignorant.
         }
 
         public void UpdateBand(Band band)

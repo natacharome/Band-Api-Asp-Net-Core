@@ -7,15 +7,8 @@ using System.Threading.Tasks;
 
 namespace BandApi.Dtos
 {
-    [TitleAndDescriptionAttribute]
-    public class AlbumForCreatingDto
+    // inherits from abstract class
+    public class AlbumForCreatingDto : AlbumManipulationDto
     {
-        [Required]
-        [MaxLength(200)]
-        public string Title { get; set; }
-
-        [MaxLength(400)]
-
-        public string Description { get; set; }
     }
 }

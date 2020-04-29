@@ -35,7 +35,7 @@ namespace BandApi.Controllers
         }
 
         // api/bands/bandId/albums/albumId
-        [HttpGet("{albumId}", Name="GetAlbum")]
+        [HttpGet("{albumId}", Name = "GetAlbum")]
         public ActionResult<AlbumDto> GetAlbum(Guid bandId, Guid albumId)
         {
             if (!_repository.BandExists(bandId))
@@ -52,11 +52,26 @@ namespace BandApi.Controllers
             if (!_repository.BandExists(bandId))
                 return NotFound();
             var albumEntity = _mapper.Map<Album>(album);
-            _repository.AddAlbum(bandId,albumEntity);
+            _repository.AddAlbum(bandId, albumEntity);
             _repository.Save();
 
             var albumToReturn = _mapper.Map<AlbumDto>(albumEntity);
             return CreatedAtRoute("GetAlbum", new { bandId = bandId, albumId = albumToReturn.Id }, albumToReturn);
+        }
+
+        [HttpPut("{albumId}")]
+        public ActionResult UpdateAlbumForBand(Guid bandId, Guid albumId, [FromBody] AlbumForUpdatingDto album)
+        {
+            if (!_repository.BandExists(bandId))
+                return NotFound();
+            var albumFromRepo = _repository.GetAlbum(bandId, albumId);
+            if (albumFromRepo == null)
+                return NotFound();
+            _mapper.Map(album, albumFromRepo);
+            _repository.UpdateAlbum(albumFromRepo);
+           _repository.Save();
+
+            return NoContent();
         }
     }
 }
