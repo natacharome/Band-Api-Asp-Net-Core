@@ -26,6 +26,7 @@ namespace BandApi.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<BandDto>> GetBands()
         {
+            //throw new Exception("Testing exceptions");
             var bandsFromRepo = _repository.GetBands();
             var bandDto = new List<BandDto>();
             //foreach(var band in bandsFromRepo)
@@ -38,8 +39,6 @@ namespace BandApi.Controllers
             //        FoundedYearsAgo = $"{band.Founded.ToString("yyyy")} ({band.Founded.GetYearsAgo()} years ago)"
             //    });
             //}
-
-
             return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo));
         }
 

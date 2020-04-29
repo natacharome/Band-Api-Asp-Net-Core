@@ -23,7 +23,7 @@ namespace BandApi.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        
+
         [HttpGet]
         public ActionResult<IEnumerable<AlbumDto>> GetAlbumsForBand(Guid bandId)
         {
@@ -31,6 +31,18 @@ namespace BandApi.Controllers
                 return NotFound();
             var albumFromRepo = _repository.GetAlbums(bandId);
             return Ok(_mapper.Map<IEnumerable<AlbumDto>>(albumFromRepo));
+        }
+
+        // api/bands/bandId/albums/albumId
+        [HttpGet("{albumId}")]
+        public ActionResult<AlbumDto> GetAlbum(Guid bandId, Guid albumId)
+        {
+            if (!_repository.BandExists(bandId))
+                return NotFound();
+            var albumForRepo = _repository.GetAlbum(bandId, albumId);
+            if (albumForRepo == null)
+                return NotFound();
+            return Ok(_mapper.Map<AlbumDto>(albumForRepo));
         }
     }
 }
