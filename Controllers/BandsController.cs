@@ -26,11 +26,10 @@ namespace BandApi.Controllers
         [HttpGet]
         [HttpHead]
         //The main genre allows to filter => // api/bands?mainGenre=Rock
-        public ActionResult<IEnumerable<BandDto>> GetBands([FromQuery]string mainGenre)
+        public ActionResult<IEnumerable<BandDto>> GetBands([FromQuery] BandsResourceParameters bandsResourceParameters)
         {
             //throw new Exception("Testing exceptions");
-            var bandsFromRepo = _repository.GetBands(mainGenre);
-            var bandDto = new List<BandDto>();
+            var bandsFromRepo = _repository.GetBands(bandsResourceParameters);
             return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo));
         }
 
