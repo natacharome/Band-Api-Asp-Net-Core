@@ -19,7 +19,7 @@ namespace BandApi.Services
         // Band
         IEnumerable<Band> GetBands();
         IEnumerable<Band> GetBands(IEnumerable<Guid> bandIds);
-        IEnumerable<Band> GetBands(BandsResourceParameters bandsResourceParameters);
+        PagedList<Band> GetBands(BandsResourceParameters bandsResourceParameters);
         Band GetBand(Guid bandId);
         void AddBand(Band band);
         void UpdateBand(Band band);

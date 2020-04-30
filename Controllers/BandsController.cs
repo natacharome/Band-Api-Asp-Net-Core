@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using AutoMapper;
 using BandApi.Dtos;
@@ -24,13 +25,31 @@ namespace BandApi.Controllers
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet]
+        [HttpGet(Name="GetBands")]
         [HttpHead]
         //The main genre allows to filter => // api/bands?mainGenre=Rock
         public ActionResult<IEnumerable<BandDto>> GetBands([FromQuery] BandsResourceParameters bandsResourceParameters)
         {
-            //throw new Exception("Testing exceptions");
             var bandsFromRepo = _repository.GetBands(bandsResourceParameters);
+
+            // pagination
+            var previousPageLink = bandsFromRepo.HasPrevious ? CreateBandsUri(bandsResourceParameters, UriType.PreviousPage) : null;
+            var nextPageLink = bandsFromRepo.HasNext ? CreateBandsUri(bandsResourceParameters, UriType.NextPage) : null;
+
+            // metadata for the header
+            var metaData = new
+            {
+                totalCount = bandsFromRepo.TotalCount,
+                pageSize = bandsFromRepo.PageSize,
+                currentPage = bandsFromRepo.CurrentPage,
+                totalPages = bandsFromRepo.TotalPages,
+                previousPageLink = previousPageLink,
+                nextPageLink = nextPageLink
+            };
+
+            Response.Headers.Add("Pagination", JsonSerializer.Serialize(metaData));
+
+
             return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo));
         }
 
@@ -72,6 +91,39 @@ namespace BandApi.Controllers
             _repository.Save();
 
             return NoContent();
+        }
+
+        private string CreateBandsUri(BandsResourceParameters bandsResourceParameters, UriType uriType)
+        {
+            switch (uriType)
+            {
+                case UriType.PreviousPage:
+                    return Url.Link("GetBands", new
+                    {
+                        pageNumber = bandsResourceParameters.PageNumber - 1,
+                        pageSize = bandsResourceParameters.PageSize,
+                        mainGenre = bandsResourceParameters.MainGenre,
+                        searchQuery = bandsResourceParameters.SearchQuery
+                    });
+
+                case UriType.NextPage:
+                    return Url.Link("GetBands", new
+                    {
+                        pageNumber = bandsResourceParameters.PageNumber + 1,
+                        pageSize = bandsResourceParameters.PageSize,
+                        mainGenre = bandsResourceParameters.MainGenre,
+                        searchQuery = bandsResourceParameters.SearchQuery
+                    });
+
+                default:
+                    return Url.Link("GetBands", new
+                    {
+                        pageNumber = bandsResourceParameters.PageNumber,
+                        pageSize = bandsResourceParameters.PageSize,
+                        mainGenre = bandsResourceParameters.MainGenre,
+                        searchQuery = bandsResourceParameters.SearchQuery
+                    });
+            }
         }
 
     }
