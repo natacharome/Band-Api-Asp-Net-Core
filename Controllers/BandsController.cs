@@ -19,20 +19,25 @@ namespace BandApi.Controllers
         private readonly IBandAlbumRepository _repository;
         private readonly IMapper _mapper;
         private readonly IPropertyMappingService _propertyMappingService;
+        private readonly IPropertyValidationService _propertyValidationService;
 
-        public BandsController(IBandAlbumRepository repository, IMapper mapper, IPropertyMappingService propertyMappingService)
+        public BandsController(IBandAlbumRepository repository, IMapper mapper, IPropertyMappingService propertyMappingService, IPropertyValidationService propertyValidationService)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _propertyMappingService = propertyMappingService ?? throw new ArgumentNullException(nameof(propertyMappingService));
+            _propertyValidationService = propertyValidationService ?? throw new ArgumentNullException(nameof(propertyValidationService));
         }
 
         [HttpGet(Name="GetBands")]
         [HttpHead]
         //The main genre allows to filter => // api/bands?mainGenre=Rock
-        public ActionResult<IEnumerable<BandDto>> GetBands([FromQuery] BandsResourceParameters bandsResourceParameters)
+        public IActionResult GetBands([FromQuery] BandsResourceParameters bandsResourceParameters)
         {
             if (!_propertyMappingService.ValidMappingExists<BandDto, Band>(bandsResourceParameters.OrderBy))
+                return BadRequest();
+
+            if (!_propertyValidationService.HasValidProperties<BandDto>(bandsResourceParameters.Fields))
                 return BadRequest();
 
             var bandsFromRepo = _repository.GetBands(bandsResourceParameters);
@@ -55,17 +60,21 @@ namespace BandApi.Controllers
             Response.Headers.Add("Pagination", JsonSerializer.Serialize(metaData));
 
 
-            return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo));
+            return Ok(_mapper.Map<IEnumerable<BandDto>>(bandsFromRepo).ShapeData(bandsResourceParameters.Fields));
         }
 
         [HttpGet("{bandId}", Name="GetBand")]
-        public IActionResult GetBand(Guid bandId)
+        public IActionResult GetBand(Guid bandId, string fields)
         {
+            if (!_propertyValidationService.HasValidProperties<BandDto>(fields)) 
+                return BadRequest();
+
             var bandFromRepo = _repository.GetBand(bandId);
+
             if (bandFromRepo == null)
                 return NotFound();
 
-            return Ok(bandFromRepo);
+            return Ok(_mapper.Map<BandDto>(bandFromRepo).ShapeData(fields));
         }
 
         [HttpPost]
@@ -105,6 +114,7 @@ namespace BandApi.Controllers
                 case UriType.PreviousPage:
                     return Url.Link("GetBands", new
                     {
+                        fields = bandsResourceParameters.Fields,
                         orderBy = bandsResourceParameters.OrderBy,
                         pageNumber = bandsResourceParameters.PageNumber - 1,
                         pageSize = bandsResourceParameters.PageSize,
@@ -115,6 +125,7 @@ namespace BandApi.Controllers
                 case UriType.NextPage:
                     return Url.Link("GetBands", new
                     {
+                        fields = bandsResourceParameters.Fields,
                         orderBy = bandsResourceParameters.OrderBy,
                         pageNumber = bandsResourceParameters.PageNumber + 1,
                         pageSize = bandsResourceParameters.PageSize,
@@ -125,6 +136,7 @@ namespace BandApi.Controllers
                 default:
                     return Url.Link("GetBands", new
                     {
+                        fields = bandsResourceParameters.Fields,
                         orderBy = bandsResourceParameters.OrderBy,
                         pageNumber = bandsResourceParameters.PageNumber,
                         pageSize = bandsResourceParameters.PageSize,
